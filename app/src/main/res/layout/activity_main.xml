@@ -16,16 +16,15 @@
         android:id="@+id/button2"
         android:nestedScrollingEnabled="false"
         android:onClick="showAllProducts"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignTop="@+id/button3"
+        android:layout_toEndOf="@+id/button3" />
 
     <NumberPicker
         android:layout_width="wrap_content"
         android:layout_height="100dp"
         android:id="@+id/numberPicker"
-        android:layout_above="@+id/button2"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="26dp" />
+        android:layout_below="@+id/horizontalScrollView"
+        android:layout_alignParentStart="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -113,5 +112,34 @@
 
         </TableLayout>
     </HorizontalScrollView>
+
+    <EditText
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText"
+        android:layout_below="@+id/numberPicker"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Search"
+        android:id="@+id/search"
+        android:layout_alignTop="@+id/editText"
+        android:layout_toEndOf="@+id/editText" />
+
+    <Spinner
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner"
+        android:layout_below="@+id/search"
+        android:layout_alignParentStart="true" />
+
+    <Spinner
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner2"
+        android:layout_alignTop="@+id/spinner"
+        android:layout_toEndOf="@+id/spinner" />
 
 </RelativeLayout>

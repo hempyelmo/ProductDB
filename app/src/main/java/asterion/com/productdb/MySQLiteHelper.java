@@ -247,6 +247,40 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
     }
 
+    public List<Product> findProduct(String column, String operator, String value) {
+
+        // 1. get reference to readable DB
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String query = "SELECT * FROM " + TABLE_PRODUCTS + " WHERE "
+                + column + " " + operator + " " + value;
+
+        // 2. build query
+        Cursor cursor = db.rawQuery(query, null);
+
+        List<Product> products = new LinkedList<>();
+        // 3. if we got results get the first one
+        Product product;
+        if (cursor.moveToFirst()) {
+            do {
+                product = new Product();
+                product.setIdNb(cursor.getString(2));
+                product.setUpc(cursor.getString(3));
+                product.setDesc(cursor.getString(4));
+                product.setFormat(cursor.getString(5));
+                product.setNbFacing(Integer.parseInt(cursor.getString(6)));
+                product.setShelfNb(Integer.parseInt(cursor.getString(7)));
+                product.setShelfHeight(Integer.parseInt(cursor.getString(8)));
+
+                products.add(product);
+            } while (cursor.moveToNext());
+        } else {
+            products.add(null);
+        }
+
+        return products;
+    }
+
     public int getNbProducts() {
         return mLoc - 1;
     }
