@@ -144,9 +144,10 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                         null, // g. order by
                         null); // h. limit
 
+
         Product product = new Product();
         // 3. if we got results get the first one
-        if (cursor != null) {
+        if (cursor.getCount() != 0) {
             cursor.moveToFirst();
 
             product.setIdNb(cursor.getString(2));
@@ -252,8 +253,30 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         // 1. get reference to readable DB
         SQLiteDatabase db = this.getReadableDatabase();
 
+        if(operator.equals("contains")) {
+            operator = " LIKE \'%";
+            value = value + "%\'";
+        } else {
+            value = "\'" + value + "\'";
+        }
+
+        switch(column){
+            case "Loc":
+                column = "loc";
+                break;
+            case "McKesson Id":
+                column = "McKIdNb";
+                break;
+            case "UPC":
+                column = "UPC";
+                break;
+            case "Description":
+                column = "description";
+                break;
+        }
+
         String query = "SELECT * FROM " + TABLE_PRODUCTS + " WHERE "
-                + column + " " + operator + " " + value;
+                + column + operator + value;
 
         // 2. build query
         Cursor cursor = db.rawQuery(query, null);

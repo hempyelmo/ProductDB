@@ -126,7 +126,8 @@
         android:text="Search"
         android:id="@+id/search"
         android:layout_alignTop="@+id/editText"
-        android:layout_toEndOf="@+id/editText" />
+        android:layout_toEndOf="@+id/editText"
+        android:onClick="findProduct" />
 
     <Spinner
         android:layout_width="100dp"

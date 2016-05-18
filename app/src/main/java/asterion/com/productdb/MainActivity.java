@@ -2,29 +2,27 @@ package asterion.com.productdb;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     MySQLiteHelper mProductDB;
-    NumberPicker bou;
+    NumberPicker nbPickLoc;
     TableLayout tl;
+    String operator;
+    String column;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,9 +33,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         tl = (TableLayout) findViewById(R.id.maintable);
 
-        /**
-         * CRUD Operations
-         * */
         mProductDB.addProduct(new Product("088754", "064642078728","JAMIESON MULTI COMPL.VIT.ADLT","1 X 90 CAPL",1,1,7,false));
         mProductDB.addProduct(new Product("088894","064642078742","JAMIESON MULTI COMPL.VIT.50+","1 X 90 CAPL",1,1,7,false));
         mProductDB.addProduct(new Product("088803","064642078759","JAMIESON MULTI COMPL.VIT.CROQ.","1 X 60 COMP",1,1,7,false));
@@ -45,12 +40,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mProductDB.insertProduct(
                new Product("088892","064642078735","JAMIESON MULTI COMPL.VIT.MAX FORCE","1 X 90 CAPL",1,1,7,false),2);
 
-        bou = (NumberPicker) findViewById(R.id.numberPicker);
+        nbPickLoc = (NumberPicker) findViewById(R.id.numberPicker);
 
-        assert bou != null;
-        bou.setMinValue(1);
-        bou.setMaxValue(mProductDB.getNbProducts());
+        nbPickLoc.setDescendantFocusability(NumberPicker.FOCUS_AFTER_DESCENDANTS);
 
+        assert nbPickLoc != null;
+        nbPickLoc.setMinValue(1);
+        nbPickLoc.setMaxValue(mProductDB.getNbProducts());
+
+        showSpinner();
+    }
+
+    private void showSpinner() {
         // Spinner element
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
 
@@ -93,99 +94,90 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         // Drop down layout style - list view with radio button
         dataAdapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        spinner2.setAdapter(dataAdapter2);
     }
 
    public void showAllProducts(View v) {
         List<Product> products = mProductDB.getAllProducts();
 
-       Log.d("showAllProducts","" + tl.getChildCount());
-
-       int childCount = tl.getChildCount();
-       if (childCount > 1)
-            tl.removeViews(1, childCount - 1);
-
-       int i = 1;
-       for(Product product : products) {
-           TableRow row = new TableRow(this);
-
-           TextView txtvId = new TextView(this);
-           TextView txtvLoc = new TextView(this);
-           TextView txtvMcKId = new TextView(this);
-           TextView txtvUpc = new TextView(this);
-           TextView txtvDesc = new TextView(this);
-           TextView txtvFormat = new TextView(this);
-           TextView txtvNbFacing = new TextView(this);
-
-           txtvId.setText(String.valueOf(i));
-           txtvLoc.setText(String.valueOf(mProductDB.getLoc(i)));
-           txtvMcKId.setText(product.getIdNb());
-           txtvUpc.setText(product.getUpc());
-           txtvDesc.setText(product.getDesc());
-           txtvFormat.setText(product.getFormat());
-           txtvNbFacing.setText(String.valueOf(product.getNbFacing()));
-
-           row.addView(txtvId);
-           row.addView(txtvLoc);
-           row.addView(txtvMcKId);
-           row.addView(txtvUpc);
-           row.addView(txtvDesc);
-           row.addView(txtvFormat);
-           row.addView(txtvNbFacing);
-
-           tl.addView(row,i);
-
-           i++;
-       }
+        refreshTable(products);
     }
 
     public void getProduct(View v) {
 
-        int loc = bou.getValue();
+        int loc = nbPickLoc.getValue();
 
         Product product = mProductDB.getProduct(loc);
+        List<Product> products = new LinkedList<>();
+        products.add(product);
 
-        if(product != null) {
+        refreshTable(products);
+    }
 
-            if (tl.getChildCount() > 1)
-                tl.removeViewAt(1);
+    private void refreshTable(List<Product> products) {
 
-            TableRow row = new TableRow(this);
+        int childCount = tl.getChildCount();
+        if (childCount > 1)
+            tl.removeViews(1, childCount - 1);
 
-            TextView txtvId = new TextView(this);
-            TextView txtvLoc = new TextView(this);
-            TextView txtvMcKId = new TextView(this);
-            TextView txtvUpc = new TextView(this);
-            TextView txtvDesc = new TextView(this);
-            TextView txtvFormat = new TextView(this);
-            TextView txtvNbFacing = new TextView(this);
+        if (products.get(0) != null) {
+            int i = 1;
 
-            txtvId.setText(String.valueOf(mProductDB.getId(loc)));
-            txtvLoc.setText(String.valueOf(loc));
-            txtvMcKId.setText(product.getIdNb());
-            txtvUpc.setText(product.getUpc());
-            txtvDesc.setText(product.getDesc());
-            txtvFormat.setText(product.getFormat());
-            txtvNbFacing.setText(String.valueOf(product.getNbFacing()));
+            for (Product product : products) {
+                TableRow row = new TableRow(this);
 
-            row.addView(txtvId);
-            row.addView(txtvLoc);
-            row.addView(txtvMcKId);
-            row.addView(txtvUpc);
-            row.addView(txtvDesc);
-            row.addView(txtvFormat);
-            row.addView(txtvNbFacing);
+                TextView txtvId = new TextView(this);
+                TextView txtvLoc = new TextView(this);
+                TextView txtvMcKId = new TextView(this);
+                TextView txtvUpc = new TextView(this);
+                TextView txtvDesc = new TextView(this);
+                TextView txtvFormat = new TextView(this);
+                TextView txtvNbFacing = new TextView(this);
 
-            tl.addView(row, 1);
+                txtvId.setText(String.valueOf(i));
+                txtvLoc.setText(String.valueOf(mProductDB.getLoc(i)));
+                txtvMcKId.setText(product.getIdNb());
+                txtvUpc.setText(product.getUpc());
+                txtvDesc.setText(product.getDesc());
+                txtvFormat.setText(product.getFormat());
+                txtvNbFacing.setText(String.valueOf(product.getNbFacing()));
+
+                row.addView(txtvId);
+                row.addView(txtvLoc);
+                row.addView(txtvMcKId);
+                row.addView(txtvUpc);
+                row.addView(txtvDesc);
+                row.addView(txtvFormat);
+                row.addView(txtvNbFacing);
+
+                tl.addView(row, i);
+
+                i++;
+            }
         }
+    }
+
+    public void findProduct(View v) {
+      EditText etxtValues = (EditText) findViewById(R.id.editText);
+
+        String value = etxtValues.getText().toString();
+
+        List<Product> products = mProductDB.findProduct(column,operator,value);
+        refreshTable(products);
     }
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         // On selecting a spinner item
-        String item = parent.getItemAtPosition(position).toString();
 
-        // Showing selected spinner item
-        Toast.makeText(parent.getContext(), "Selected: " + item, Toast.LENGTH_LONG).show();
+        Spinner spinner = (Spinner) parent;
+        if(spinner.getId() == R.id.spinner) {
+            column = parent.getItemAtPosition(position).toString();
+        } else if(spinner.getId() == R.id.spinner2) {
+            operator = parent.getItemAtPosition(position).toString();
+        }
+
     }
     public void onNothingSelected(AdapterView<?> arg0) {
         // TODO Auto-generated method stub
