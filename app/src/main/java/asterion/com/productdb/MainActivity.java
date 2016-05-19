@@ -33,12 +33,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         tl = (TableLayout) findViewById(R.id.maintable);
 
-        mProductDB.addProduct(new Product("088754", "064642078728","JAMIESON MULTI COMPL.VIT.ADLT","1 X 90 CAPL",1,1,7,false));
-        mProductDB.addProduct(new Product("088894","064642078742","JAMIESON MULTI COMPL.VIT.50+","1 X 90 CAPL",1,1,7,false));
-        mProductDB.addProduct(new Product("088803","064642078759","JAMIESON MULTI COMPL.VIT.CROQ.","1 X 60 COMP",1,1,7,false));
+       mProductDB.addProduct(new Product(1,"088754", "064642078728","JAMIESON MULTI COMPL.VIT.ADLT","1 X 90 CAPL",1,1,7,false));
+        mProductDB.addProduct(new Product(2,"088894","064642078742","JAMIESON MULTI COMPL.VIT.50+","1 X 90 CAPL",1,1,7,false));
+        mProductDB.addProduct(new Product(3,"088803","064642078759","JAMIESON MULTI COMPL.VIT.CROQ.","1 X 60 COMP",1,1,7,false));
 
         mProductDB.insertProduct(
-               new Product("088892","064642078735","JAMIESON MULTI COMPL.VIT.MAX FORCE","1 X 90 CAPL",1,1,7,false),2);
+               new Product(2,"088892","064642078735","JAMIESON MULTI COMPL.VIT.MAX FORCE","1 X 90 CAPL",1,1,7,false));
 
         nbPickLoc = (NumberPicker) findViewById(R.id.numberPicker);
 
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         // Spinner Drop down elements
         List<String> columns = new ArrayList<>();
-        columns.add("Loc");
+        columns.add("Position");
         columns.add("McKesson Id");
         columns.add("UPC");
         columns.add("Description");
@@ -127,16 +127,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             for (Product product : products) {
                 TableRow row = new TableRow(this);
 
+                int pos = product.getPos();
+
                 TextView txtvId = new TextView(this);
-                TextView txtvLoc = new TextView(this);
+                TextView txtvPos = new TextView(this);
                 TextView txtvMcKId = new TextView(this);
                 TextView txtvUpc = new TextView(this);
                 TextView txtvDesc = new TextView(this);
                 TextView txtvFormat = new TextView(this);
                 TextView txtvNbFacing = new TextView(this);
 
-                txtvId.setText(String.valueOf(i));
-                txtvLoc.setText(String.valueOf(mProductDB.getLoc(i)));
+                txtvId.setText(String.valueOf(mProductDB.getId(pos)));
+                txtvPos.setText(String.valueOf(pos));
                 txtvMcKId.setText(product.getIdNb());
                 txtvUpc.setText(product.getUpc());
                 txtvDesc.setText(product.getDesc());
@@ -144,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 txtvNbFacing.setText(String.valueOf(product.getNbFacing()));
 
                 row.addView(txtvId);
-                row.addView(txtvLoc);
+                row.addView(txtvPos);
                 row.addView(txtvMcKId);
                 row.addView(txtvUpc);
                 row.addView(txtvDesc);
