@@ -35,7 +35,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private static final String KEY_ISPLACED = "isPlaced";
 
     private static final String[] COLUMNS = {KEY_ID, KEY_POS,KEY_IDNB,KEY_UPC,
-            KEY_DESC,KEY_FORMAT,KEY_NBFACING,KEY_SHELFNB,KEY_SHELFHGT,KEY_EXPIRATION};
+            KEY_DESC,KEY_FORMAT,KEY_NBFACING,KEY_SHELFNB,KEY_SHELFHGT,
+            KEY_EXPIRATION,KEY_ISNEWPROD,KEY_ISPLACED};
 
     private int mId = 1;
 
@@ -56,7 +57,9 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                 KEY_NBFACING + " INT," +
                 KEY_SHELFNB + " INT," +
                 KEY_SHELFHGT + " INT," +
-                KEY_EXPIRATION + " CHAR(6))";
+                KEY_EXPIRATION + " CHAR(6)," +
+                KEY_ISNEWPROD + " INT," +
+                KEY_ISPLACED + " INT)";
 
         db.execSQL(CREATE_PRODUCT_TABLE);
     }
@@ -203,11 +206,17 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         values.put(KEY_NBFACING, product.getNbFacing());
         values.put(KEY_SHELFNB, product.getShelfNb());
         values.put(KEY_SHELFHGT, product.getShelfHeight());
+
         if(product.isExpired()) {
             values.put(KEY_EXPIRATION,product.getExpiration().getExpCode());
         } else {
             values.put(KEY_EXPIRATION,"");
         }
+
+        values.put(KEY_ISNEWPROD, product.isNew() ? 1 : 0);
+        values.put(KEY_ISPLACED, product.isPlaced() ? 1 : 0);
+
+        Log.d("putValues",values.toString());
 
         return values;
     }
@@ -223,8 +232,10 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         product.setNbFacing(Integer.parseInt(cursor.getString(6)));
         product.setShelfNb(Integer.parseInt(cursor.getString(7)));
         product.setShelfHeight(Integer.parseInt(cursor.getString(8)));
-        if(product.isExpired())
-            product.setExpiration(new Expiration(cursor.getString(9)));
+
+        product.setExpiration(new Expiration(cursor.getString(9)));
+        product.setIsNewProd((cursor.getInt(10) == 1));
+        product.setIsPlaced((cursor.getInt(11) == 1));
 
         return product;
     }
@@ -238,6 +249,11 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         db.delete(TABLE_PRODUCTS,
                 KEY_POS + " = ?",
                 new String[] { String.valueOf(product.getPos()) });
+
+        String DECREMENT_POS = "UPDATE " + TABLE_PRODUCTS + " SET " +
+                KEY_POS + " = " + KEY_POS + " - 1 WHERE " + KEY_POS + " >= " + product.getPos();
+
+        db.execSQL(DECREMENT_POS);
 
         // 3. close
         db.close();
@@ -323,6 +339,10 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         } else {
             return 0;
         }
+    }
+
+    private void sort(){
+        //Use "order by" in query method call
     }
 
 }

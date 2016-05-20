@@ -17,7 +17,8 @@ package asterion.com.productdb;
 
 public class Product {
 
-    boolean isNewProd;
+    private boolean isNewProd;
+    private boolean mIsPlaced;
 
     private int[] mLoc;
 
@@ -85,6 +86,10 @@ public class Product {
     }
 
     // Set product attributes
+    public void setIsPlaced(boolean isPlaced) {
+        mIsPlaced = isPlaced;
+    }
+
     public void setPos(int pos) {
         mPos = pos;
     }
@@ -126,6 +131,10 @@ public class Product {
     }
 
     // get product attributes
+    public boolean isPlaced() {
+        return mIsPlaced;
+    }
+
     public int getPos() {
         return mPos;
     }
@@ -158,7 +167,7 @@ public class Product {
         return shelfHeight;
     }
 
-    public boolean getIsNewProd() {
+    public boolean isNew() {
         return isNewProd;
     }
 
