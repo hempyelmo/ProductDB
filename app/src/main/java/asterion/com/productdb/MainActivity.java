@@ -2,6 +2,7 @@ package asterion.com.productdb;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -24,6 +25,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     String operator;
     String column;
 
+    List<Product> mProducts;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,13 +43,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mProductDB.insertProduct(
                new Product(2,"088892","064642078735","JAMIESON MULTI COMPL.VIT.MAX FORCE","1 X 90 CAPL",1,1,7,false));
 
+        mProductDB.updateProduct(new Product(3,"088754", "064642078728","JAMIESON MULTI COMPL.VIT.ADLT","1 X 90 CAPL",1,1,7,false));
+
         nbPickLoc = (NumberPicker) findViewById(R.id.numberPicker);
-
         nbPickLoc.setDescendantFocusability(NumberPicker.FOCUS_AFTER_DESCENDANTS);
-
         assert nbPickLoc != null;
         nbPickLoc.setMinValue(1);
         nbPickLoc.setMaxValue(mProductDB.getNbProducts());
+
+        mProducts = new LinkedList<>();
 
         showSpinner();
     }
@@ -99,23 +104,73 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
    public void showAllProducts(View v) {
-        List<Product> products = mProductDB.getAllProducts();
+        //List<Product> products = mProductDB.getAllProducts();
+       mProducts.clear();
+       mProducts = mProductDB.getAllProducts();
 
-        refreshTable(products);
+        refreshTable();
     }
 
     public void getProduct(View v) {
 
         int loc = nbPickLoc.getValue();
 
-        Product product = mProductDB.getProduct(loc);
-        List<Product> products = new LinkedList<>();
-        products.add(product);
+        mProducts.clear();
 
-        refreshTable(products);
+        Product product = mProductDB.getProduct(loc);
+        //List<Product> products = new LinkedList<>();
+        //products.add(product);
+        mProducts.add(product);
+
+        refreshTable();
     }
 
-    private void refreshTable(List<Product> products) {
+    private void refreshTable() {
+
+        int childCount = tl.getChildCount();
+        if (childCount > 1)
+            tl.removeViews(1, childCount - 1);
+
+        if (mProducts.get(0) != null) {
+            int i = 1;
+
+            for (Product product : mProducts) {
+                TableRow row = new TableRow(this);
+
+                int pos = product.getPos();
+
+                TextView txtvId = new TextView(this);
+                TextView txtvPos = new TextView(this);
+                TextView txtvMcKId = new TextView(this);
+                TextView txtvUpc = new TextView(this);
+                TextView txtvDesc = new TextView(this);
+                TextView txtvFormat = new TextView(this);
+                TextView txtvNbFacing = new TextView(this);
+
+                txtvId.setText(String.valueOf(mProductDB.getId(pos)));
+                txtvPos.setText(String.valueOf(pos));
+                txtvMcKId.setText(product.getIdNb());
+                txtvUpc.setText(product.getUpc());
+                txtvDesc.setText(product.getDesc());
+                txtvFormat.setText(product.getFormat());
+                txtvNbFacing.setText(String.valueOf(product.getNbFacing()));
+
+                row.addView(txtvId);
+                row.addView(txtvPos);
+                row.addView(txtvMcKId);
+                row.addView(txtvUpc);
+                row.addView(txtvDesc);
+                row.addView(txtvFormat);
+                row.addView(txtvNbFacing);
+
+                tl.addView(row, i);
+
+                i++;
+            }
+        }
+    }
+
+/*    private void refreshTable(List<Product> products) {
 
         int childCount = tl.getChildCount();
         if (childCount > 1)
@@ -158,15 +213,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 i++;
             }
         }
-    }
+    }*/
 
     public void findProduct(View v) {
       EditText etxtValues = (EditText) findViewById(R.id.editText);
 
         String value = etxtValues.getText().toString();
 
-        List<Product> products = mProductDB.findProduct(column,operator,value);
-        refreshTable(products);
+        mProducts.clear();
+
+        //List<Product> products = mProductDB.findProduct(column,operator,value);
+        mProducts = mProductDB.findProduct(column,operator,value);
+        refreshTable();
     }
 
     @Override
@@ -183,6 +241,52 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
     public void onNothingSelected(AdapterView<?> arg0) {
         // TODO Auto-generated method stub
+    }
+
+    public void sort(View v) {
+
+        String KEY_ID = "id";
+        String KEY_POS = "position";
+        String KEY_IDNB = "McKIdNb";
+        String KEY_UPC = "UPC";
+        String KEY_DESC = "description";
+        String KEY_FORMAT = "format";
+        String KEY_NBFACING = "nbFacing";
+
+        String direction = "ASC";
+        String column;
+
+        switch(v.getId()) {
+            case R.id.colId:
+                column = KEY_ID;
+                break;
+            case R.id.colPos:
+                column = KEY_POS;
+                break;
+            case R.id.colMcKesson:
+                column = KEY_IDNB;
+                break;
+            case R.id.colUPC:
+                column = KEY_UPC;
+                break;
+            case R.id.colDesc:
+                column = KEY_DESC;
+                break;
+            case R.id.colFormat:
+                column = KEY_FORMAT;
+                break;
+            case R.id.colNbFacing:
+                column = KEY_NBFACING;
+                break;
+            default:
+                throw new RuntimeException("Unknow button ID");
+        }
+
+        mProductDB.sort(column,direction);
+
+        Log.d("sort", column + " " + direction);
+
+        refreshTable();
     }
 
 }

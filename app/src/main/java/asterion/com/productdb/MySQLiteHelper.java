@@ -34,11 +34,17 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private static final String KEY_ISNEWPROD = "isNewProd";
     private static final String KEY_ISPLACED = "isPlaced";
 
+    private static final String DIRECTION_ASC = "ASC";
+    private static final String DIRECTION_DESC = "DESC";
+
     private static final String[] COLUMNS = {KEY_ID, KEY_POS,KEY_IDNB,KEY_UPC,
             KEY_DESC,KEY_FORMAT,KEY_NBFACING,KEY_SHELFNB,KEY_SHELFHGT,
             KEY_EXPIRATION,KEY_ISNEWPROD,KEY_ISPLACED};
 
     private int mId = 1;
+    private String mOrder;
+
+    private List<Product> mProductsFound;
 
     public MySQLiteHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -62,6 +68,10 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                 KEY_ISPLACED + " INT)";
 
         db.execSQL(CREATE_PRODUCT_TABLE);
+
+        mProductsFound = new LinkedList<>();
+
+        sort(KEY_ID,DIRECTION_ASC);
     }
 
     @Override
@@ -127,7 +137,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                         new String[] { String.valueOf(pos) }, // d. selections args
                         null, // e. group by
                         null, // f. having
-                        null, // g. order by
+                        mOrder, // g. order by
                         null); // h. limit
 
 
@@ -152,7 +162,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         List<Product> products = new LinkedList<>();
 
         // 1. build the query
-        String query = "SELECT * FROM " + TABLE_PRODUCTS;
+        String query = "SELECT * FROM " + TABLE_PRODUCTS + " ORDER BY " + mOrder;
 
         // 2. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
@@ -172,94 +182,6 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         cursor.close();
 
         return products;
-    }
-
-    public int updateProduct(Product product) {
-
-        // 1. get reference to writable DB
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        // 2. create ContentValues to add key "column"/value
-        ContentValues values = putValues(product);
-
-        // 3. updating row
-        int i = db.update(TABLE_PRODUCTS, //table
-                values, // column/value
-                KEY_UPC + " = ?", // selections
-                new String[] { product.getUpc() }); //selection args
-
-        // 4. close
-        db.close();
-
-        return i;
-    }
-
-    private ContentValues putValues(Product product) {
-        ContentValues values = new ContentValues();
-
-        values.put(KEY_ID, mId);
-        values.put(KEY_POS, product.getPos());
-        values.put(KEY_IDNB, product.getIdNb());
-        values.put(KEY_UPC, product.getUpc());
-        values.put(KEY_DESC, product.getDesc());
-        values.put(KEY_FORMAT, product.getFormat());
-        values.put(KEY_NBFACING, product.getNbFacing());
-        values.put(KEY_SHELFNB, product.getShelfNb());
-        values.put(KEY_SHELFHGT, product.getShelfHeight());
-
-        if(product.isExpired()) {
-            values.put(KEY_EXPIRATION,product.getExpiration().getExpCode());
-        } else {
-            values.put(KEY_EXPIRATION,"");
-        }
-
-        values.put(KEY_ISNEWPROD, product.isNew() ? 1 : 0);
-        values.put(KEY_ISPLACED, product.isPlaced() ? 1 : 0);
-
-        Log.d("putValues",values.toString());
-
-        return values;
-    }
-
-    private Product createProduct(Cursor cursor) {
-        Product product = new Product();
-
-        product.setPos(cursor.getInt(1));
-        product.setIdNb(cursor.getString(2));
-        product.setUpc(cursor.getString(3));
-        product.setDesc(cursor.getString(4));
-        product.setFormat(cursor.getString(5));
-        product.setNbFacing(Integer.parseInt(cursor.getString(6)));
-        product.setShelfNb(Integer.parseInt(cursor.getString(7)));
-        product.setShelfHeight(Integer.parseInt(cursor.getString(8)));
-
-        product.setExpiration(new Expiration(cursor.getString(9)));
-        product.setIsNewProd((cursor.getInt(10) == 1));
-        product.setIsPlaced((cursor.getInt(11) == 1));
-
-        return product;
-    }
-
-    public void deleteProduct(Product product) {
-
-        // 1. get reference to writable DB
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        // 2. delete
-        db.delete(TABLE_PRODUCTS,
-                KEY_POS + " = ?",
-                new String[] { String.valueOf(product.getPos()) });
-
-        String DECREMENT_POS = "UPDATE " + TABLE_PRODUCTS + " SET " +
-                KEY_POS + " = " + KEY_POS + " - 1 WHERE " + KEY_POS + " >= " + product.getPos();
-
-        db.execSQL(DECREMENT_POS);
-
-        // 3. close
-        db.close();
-
-        Log.d("deleteProduct", product.toString());
-
     }
 
     public List<Product> findProduct(String column, String operator, String value) {
@@ -311,6 +233,94 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         return products;
     }
 
+    public int updateProduct(Product product) {
+
+        // 1. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // 2. create ContentValues to add key "column"/value
+        ContentValues values = putValues(product);
+
+        // 3. updating row
+        int i = db.update(TABLE_PRODUCTS, //table
+                values, // column/value
+                KEY_UPC + " = ?", // selections
+                new String[] { product.getUpc() }); //selection args
+
+        // 4. close
+        db.close();
+
+        return i;
+    }
+
+    public void deleteProduct(Product product) {
+
+        // 1. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // 2. delete
+        db.delete(TABLE_PRODUCTS,
+                KEY_POS + " = ?",
+                new String[] { String.valueOf(product.getPos()) });
+
+        String DECREMENT_POS = "UPDATE " + TABLE_PRODUCTS + " SET " +
+                KEY_POS + " = " + KEY_POS + " - 1 WHERE " + KEY_POS + " >= " + product.getPos();
+
+        db.execSQL(DECREMENT_POS);
+
+        // 3. close
+        db.close();
+
+        Log.d("deleteProduct", product.toString());
+
+    }
+
+    private ContentValues putValues(Product product) {
+        ContentValues values = new ContentValues();
+
+        values.put(KEY_ID, mId);
+        values.put(KEY_POS, product.getPos());
+        values.put(KEY_IDNB, product.getIdNb());
+        values.put(KEY_UPC, product.getUpc());
+        values.put(KEY_DESC, product.getDesc());
+        values.put(KEY_FORMAT, product.getFormat());
+        values.put(KEY_NBFACING, product.getNbFacing());
+        values.put(KEY_SHELFNB, product.getShelfNb());
+        values.put(KEY_SHELFHGT, product.getShelfHeight());
+
+        if(product.isExpired()) {
+            values.put(KEY_EXPIRATION,product.getExpiration().getExpCode());
+        } else {
+            values.put(KEY_EXPIRATION,"");
+        }
+
+        values.put(KEY_ISNEWPROD, product.isNew() ? 1 : 0);
+        values.put(KEY_ISPLACED, product.isPlaced() ? 1 : 0);
+
+        Log.d("putValues",values.toString());
+
+        return values;
+    }
+
+    private Product createProduct(Cursor cursor) {
+        Product product = new Product();
+
+        product.setPos(cursor.getInt(1));
+        product.setIdNb(cursor.getString(2));
+        product.setUpc(cursor.getString(3));
+        product.setDesc(cursor.getString(4));
+        product.setFormat(cursor.getString(5));
+        product.setNbFacing(Integer.parseInt(cursor.getString(6)));
+        product.setShelfNb(Integer.parseInt(cursor.getString(7)));
+        product.setShelfHeight(Integer.parseInt(cursor.getString(8)));
+
+        product.setExpiration(new Expiration(cursor.getString(9)));
+        product.setIsNewProd((cursor.getInt(10) == 1));
+        product.setIsPlaced((cursor.getInt(11) == 1));
+
+        return product;
+    }
+
     public int getNbProducts() {
         return mId - 1;
     }
@@ -341,8 +351,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         }
     }
 
-    private void sort(){
-        //Use "order by" in query method call
+    public void sort(String column, String direction){
+        mOrder = column + " " + direction;
     }
 
 }

@@ -17,8 +17,8 @@ package asterion.com.productdb;
 
 public class Product {
 
-    private boolean isNewProd;
-    private boolean mIsPlaced;
+    private boolean isNewProd = false;
+    private boolean mIsPlaced = false;
 
     private int[] mLoc;
 
