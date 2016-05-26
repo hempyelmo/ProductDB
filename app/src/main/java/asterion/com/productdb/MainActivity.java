@@ -1,5 +1,6 @@
 package asterion.com.productdb;
 
+import android.content.ContentValues;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,21 +33,28 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mProductDB = new MySQLiteHelper(this);
-
         tl = (TableLayout) findViewById(R.id.maintable);
 
-       mProductDB.addProduct(new Product(1,"088754", "064642078728","JAMIESON MULTI COMPL.VIT.ADLT","1 X 90 CAPL",1,1,7,false));
+        String dbPath = getFilesDir().getPath();
+        dbPath = dbPath.substring(0, dbPath.lastIndexOf("/")) + "/databases/";
+
+        mProductDB = new MySQLiteHelper(this,"ProductDB");
+        mProductDB.open(dbPath);
+        /*
+        mProductDB.create();
+
+        mProductDB.addProduct(new Product(1,"088754", "064642078728","JAMIESON MULTI COMPL.VIT.ADLT","1 X 90 CAPL",1,1,7,false));
         mProductDB.addProduct(new Product(2,"088894","064642078742","JAMIESON MULTI COMPL.VIT.50+","1 X 90 CAPL",1,1,7,false));
         mProductDB.addProduct(new Product(3,"088803","064642078759","JAMIESON MULTI COMPL.VIT.CROQ.","1 X 60 COMP",1,1,7,false));
 
         mProductDB.insertProduct(
                new Product(2,"088892","064642078735","JAMIESON MULTI COMPL.VIT.MAX FORCE","1 X 90 CAPL",1,1,7,false));
 
-        mProductDB.updateProduct(new Product(3,"088754", "064642078728","JAMIESON MULTI COMPL.VIT.ADLT","1 X 90 CAPL",1,1,7,false));
+        mProductDB.updateProduct("064642078759",MySQLiteHelper.KEY_NBFACING,"3");
 
+        Log.d("MainActivity.onCreate","Nb of products = " + mProductDB.getNbProducts());
+*/
         nbPickLoc = (NumberPicker) findViewById(R.id.numberPicker);
-        nbPickLoc.setDescendantFocusability(NumberPicker.FOCUS_AFTER_DESCENDANTS);
         assert nbPickLoc != null;
         nbPickLoc.setMinValue(1);
         nbPickLoc.setMaxValue(mProductDB.getNbProducts());
@@ -104,11 +112,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
    public void showAllProducts(View v) {
-        //List<Product> products = mProductDB.getAllProducts();
-       mProducts.clear();
-       mProducts = mProductDB.getAllProducts();
+        List<Product> products = mProductDB.getAllProducts();
 
-        refreshTable();
+        refreshTable(products);
     }
 
     public void getProduct(View v) {
@@ -118,59 +124,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mProducts.clear();
 
         Product product = mProductDB.getProduct(loc);
-        //List<Product> products = new LinkedList<>();
-        //products.add(product);
-        mProducts.add(product);
+        List<Product> products = new LinkedList<>();
+        products.add(product);
 
-        refreshTable();
+        refreshTable(products);
     }
 
-    private void refreshTable() {
-
-        int childCount = tl.getChildCount();
-        if (childCount > 1)
-            tl.removeViews(1, childCount - 1);
-
-        if (mProducts.get(0) != null) {
-            int i = 1;
-
-            for (Product product : mProducts) {
-                TableRow row = new TableRow(this);
-
-                int pos = product.getPos();
-
-                TextView txtvId = new TextView(this);
-                TextView txtvPos = new TextView(this);
-                TextView txtvMcKId = new TextView(this);
-                TextView txtvUpc = new TextView(this);
-                TextView txtvDesc = new TextView(this);
-                TextView txtvFormat = new TextView(this);
-                TextView txtvNbFacing = new TextView(this);
-
-                txtvId.setText(String.valueOf(mProductDB.getId(pos)));
-                txtvPos.setText(String.valueOf(pos));
-                txtvMcKId.setText(product.getIdNb());
-                txtvUpc.setText(product.getUpc());
-                txtvDesc.setText(product.getDesc());
-                txtvFormat.setText(product.getFormat());
-                txtvNbFacing.setText(String.valueOf(product.getNbFacing()));
-
-                row.addView(txtvId);
-                row.addView(txtvPos);
-                row.addView(txtvMcKId);
-                row.addView(txtvUpc);
-                row.addView(txtvDesc);
-                row.addView(txtvFormat);
-                row.addView(txtvNbFacing);
-
-                tl.addView(row, i);
-
-                i++;
-            }
-        }
-    }
-
-/*    private void refreshTable(List<Product> products) {
+    private void refreshTable(List<Product> products) {
 
         int childCount = tl.getChildCount();
         if (childCount > 1)
@@ -213,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 i++;
             }
         }
-    }*/
+    }
 
     public void findProduct(View v) {
       EditText etxtValues = (EditText) findViewById(R.id.editText);
@@ -222,9 +182,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         mProducts.clear();
 
-        //List<Product> products = mProductDB.findProduct(column,operator,value);
-        mProducts = mProductDB.findProduct(column,operator,value);
-        refreshTable();
+        List<Product> products = mProductDB.findProduct(column,operator,value);
+        refreshTable(products);
     }
 
     @Override
@@ -245,38 +204,30 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     public void sort(View v) {
 
-        String KEY_ID = "id";
-        String KEY_POS = "position";
-        String KEY_IDNB = "McKIdNb";
-        String KEY_UPC = "UPC";
-        String KEY_DESC = "description";
-        String KEY_FORMAT = "format";
-        String KEY_NBFACING = "nbFacing";
-
         String direction = "ASC";
         String column;
 
         switch(v.getId()) {
             case R.id.colId:
-                column = KEY_ID;
+                column = MySQLiteHelper.KEY_ID;
                 break;
             case R.id.colPos:
-                column = KEY_POS;
+                column = MySQLiteHelper.KEY_POS;
                 break;
             case R.id.colMcKesson:
-                column = KEY_IDNB;
+                column = MySQLiteHelper.KEY_IDNB;
                 break;
             case R.id.colUPC:
-                column = KEY_UPC;
+                column = MySQLiteHelper.KEY_UPC;
                 break;
             case R.id.colDesc:
-                column = KEY_DESC;
+                column = MySQLiteHelper.KEY_DESC;
                 break;
             case R.id.colFormat:
-                column = KEY_FORMAT;
+                column = MySQLiteHelper.KEY_FORMAT;
                 break;
             case R.id.colNbFacing:
-                column = KEY_NBFACING;
+                column = MySQLiteHelper.KEY_NBFACING;
                 break;
             default:
                 throw new RuntimeException("Unknow button ID");
@@ -285,8 +236,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mProductDB.sort(column,direction);
 
         Log.d("sort", column + " " + direction);
-
-        refreshTable();
     }
 
 }
