@@ -10,11 +10,12 @@ import android.util.Log;
 import java.util.List;
 import java.util.LinkedList;
 
+//TODO: Use ArrayList
+
 public class MySQLiteHelper extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 1;
-    private static final String DATABASE_NAME = "ProductDB";
-    private static final String TABLE_PRODUCTS = "products";
+    private final String TABLE_NAME;
 
     public static final String KEY_ID = "id";
     public static final String KEY_POS = "position";
@@ -40,18 +41,17 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private String mOrder;
 
     private SQLiteDatabase mDatabase;
-    private String mDatabaseName;
 
     public MySQLiteHelper(Context context, String databaseName) {
         super(context, databaseName, null, DATABASE_VERSION);
 
-        mDatabaseName = databaseName;
+        TABLE_NAME = databaseName;
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-       String CREATE_PRODUCT_TABLE = "CREATE TABLE " + TABLE_PRODUCTS + "(" +
+       String CREATE_PRODUCT_TABLE = "CREATE TABLE " + TABLE_NAME + "(" +
                 KEY_ID + " INT PRIMARY KEY," +
                 KEY_POS + " INT," +
                 KEY_IDNB + " CHAR(6)," +
@@ -72,7 +72,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PRODUCTS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         this.onCreate(db);
     }
 
@@ -81,7 +81,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     }
 
     public void open(String databasePath) {
-        mDatabase = SQLiteDatabase.openDatabase(databasePath + mDatabaseName, null, 0);
+        mDatabase = SQLiteDatabase.openDatabase(databasePath + TABLE_NAME, null, 0);
     }
 
     public void close() {
@@ -97,7 +97,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
         ContentValues values = putValues(product);
 
-        mDatabase.insert(TABLE_PRODUCTS, // table
+        mDatabase.insert(TABLE_NAME, // table
                 null, //nullColumnHack
                 values); // key/value -> keys = column names/ values = column values
 
@@ -109,13 +109,13 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
         ContentValues values = putValues(product);
 
-        String INCREMENT_POS = "UPDATE " + TABLE_PRODUCTS + " SET " +
+        String INCREMENT_POS = "UPDATE " + TABLE_NAME + " SET " +
                 KEY_POS + " = " + KEY_POS + " + 1 WHERE " + KEY_POS + " >= " + product.getPos();
 
         mDatabase.execSQL(INCREMENT_POS);
 
         // 3. insert
-        mDatabase.insert(TABLE_PRODUCTS, // table
+        mDatabase.insert(TABLE_NAME, // table
                 null, //nullColumnHack
                 values); // key/value -> keys = column names/ values = column values
 
@@ -125,7 +125,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public Product getProduct(int pos){
 
         Cursor cursor =
-                mDatabase.query(TABLE_PRODUCTS, // a. table
+                mDatabase.query(TABLE_NAME, // a. table
                         COLUMNS, // b. column names
                         " " + KEY_POS + " = ?", // c. selections
                         new String[] { String.valueOf(pos) }, // d. selections args
@@ -154,7 +154,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public List<Product> getAllProducts() {
         List<Product> products = new LinkedList<>();
 
-        String query = "SELECT * FROM " + TABLE_PRODUCTS + " ORDER BY " + mOrder;
+        String query = "SELECT * FROM " + TABLE_NAME + " ORDER BY " + mOrder;
 
         Cursor cursor = mDatabase.rawQuery(query, null);
 
@@ -198,7 +198,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                 break;
         }
 
-        String query = "SELECT * FROM " + TABLE_PRODUCTS + " WHERE "
+        String query = "SELECT * FROM " + TABLE_NAME + " WHERE "
                 + column + operator + value + " ORDER BY " + mOrder;
 
         Cursor cursor = mDatabase.rawQuery(query, null);
@@ -228,7 +228,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         ContentValues args = new ContentValues();
         args.put(attrToChange, newValue);
 
-        int i = mDatabase.update(TABLE_PRODUCTS, //table
+        int i = mDatabase.update(TABLE_NAME, //table
                  args, // column/value
                  KEY_UPC + " = ?", // selections
                  new String[] { upc }); //selection args
@@ -238,11 +238,11 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
     public void deleteProduct(Product product) {
 
-        mDatabase.delete(TABLE_PRODUCTS,
+        mDatabase.delete(TABLE_NAME,
                 KEY_POS + " = ?",
                 new String[] { String.valueOf(product.getPos()) });
 
-        String DECREMENT_POS = "UPDATE " + TABLE_PRODUCTS + " SET " +
+        String DECREMENT_POS = "UPDATE " + TABLE_NAME + " SET " +
                 KEY_POS + " = " + KEY_POS + " - 1 WHERE " + KEY_POS + " >= " + product.getPos();
 
         mDatabase.execSQL(DECREMENT_POS);
@@ -304,7 +304,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public int getId(int pos) {
 
         Cursor cursor =
-                mDatabase.query(TABLE_PRODUCTS, // a. table
+                mDatabase.query(TABLE_NAME, // a. table
                         new String[] {KEY_ID}, // b. column names
                         " " + KEY_POS + " = ?", // c. selections
                         new String[] { String.valueOf(pos) }, // d. selections args

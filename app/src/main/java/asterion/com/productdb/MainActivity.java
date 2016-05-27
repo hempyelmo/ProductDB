@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         mProductDB = new MySQLiteHelper(this,"ProductDB");
         mProductDB.open(dbPath);
-        /*
+/*
         mProductDB.create();
 
         mProductDB.addProduct(new Product(1,"088754", "064642078728","JAMIESON MULTI COMPL.VIT.ADLT","1 X 90 CAPL",1,1,7,false));
@@ -49,11 +49,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         mProductDB.insertProduct(
                new Product(2,"088892","064642078735","JAMIESON MULTI COMPL.VIT.MAX FORCE","1 X 90 CAPL",1,1,7,false));
-
-        mProductDB.updateProduct("064642078759",MySQLiteHelper.KEY_NBFACING,"3");
-
-        Log.d("MainActivity.onCreate","Nb of products = " + mProductDB.getNbProducts());
 */
+        mProductDB.updateProduct("064642078728",MySQLiteHelper.KEY_DESC,"Bla blip bloup");
+
         nbPickLoc = (NumberPicker) findViewById(R.id.numberPicker);
         assert nbPickLoc != null;
         nbPickLoc.setMinValue(1);
